@@ -93,8 +93,8 @@ int main( int argc, char** argv )
     //Ptr<ObjectnessBING> bing = Saliency::create( "BING" );
     //bing=static_cast<ObjectnessBING>(saliencyAlgorithm);
 
-    saliencyAlgorithm.staticCast<ObjectnessBING>()->set_modelName("home/puja/src/opencv_contrib/modules/saliency/src/ObjectnessTrainedModel/");
-    saliencyAlgorithm.staticCast<ObjectnessBING>()->set_bbResDir("/home/puja/src/opencv_contrib/modules/saliency/src/ObjectnessTrainedModel/");
+    saliencyAlgorithm.dynamicCast<ObjectnessBING>()->set_modelName("home/puja/src/opencv_contrib/modules/saliency/src/ObjectnessTrainedModel/");
+    saliencyAlgorithm.dynamicCast<ObjectnessBING>()->set_bbResDir("/home/puja/src/opencv_contrib/modules/saliency/src/ObjectnessTrainedModel/");
 
     //ObjectnessBING bing(saliencyAlgorithm);
 
