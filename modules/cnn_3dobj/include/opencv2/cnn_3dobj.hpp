@@ -5,8 +5,8 @@
  *      Author: wangyida
  */
 
-#ifndef SPHEREVIEW3D_HPP_
-#define SPHEREVIEW3D_HPP_
+#ifndef __OPENCV_CNN_3DOBJ_HPP__
+#define __OPENCV_CNN_3DOBJ_HPP__
 
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/viz/vizcore.hpp>
@@ -16,9 +16,12 @@
 #include <iostream>
 using namespace cv;
 using namespace std;
-namespace cv{ namespace sphereview3d{
+namespace cv
+{ 
+namespace cnn_3dobj
+{
 
-class IcoSphere {
+class CV_EXPORTS_W IcoSphere {
 
 
 	private:
@@ -33,9 +36,9 @@ class IcoSphere {
 		std::vector<cv::Point3d>* CameraPos = new std::vector<cv::Point3d>;
 		float radius;
 		IcoSphere(float radius_in, int depth_in);
-		void norm(float v[]);
-		void add(float v[]);
-		void subdivide(float v1[], float v2[], float v3[], int depth);
+		CV_WRAP void norm(float v[]);
+		CV_WRAP void add(float v[]);
+		CV_WRAP void subdivide(float v1[], float v2[], float v3[], int depth);
 
 };
 
@@ -43,4 +46,4 @@ class IcoSphere {
 
 
 
-#endif /* SPHEREVIEW3D_HPP_ */
+#endif /* CNN_3DOBJ_HPP_ */
