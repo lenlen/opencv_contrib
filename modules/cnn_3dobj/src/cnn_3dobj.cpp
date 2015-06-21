@@ -7,8 +7,8 @@ namespace cv{ namespace cnn_3dobj{
 	IcoSphere::IcoSphere(float radius_in, int depth_in)
 	{
 
-		X = 0.525731112119133606f;
-		Z = 0.850650808352039932f;
+		X = 0.5f;
+		Z = 0.5f;
 		int radius = radius_in;
 		int depth = depth_in;
 		X *= radius;
@@ -35,13 +35,23 @@ namespace cv{ namespace cnn_3dobj{
 			subdivide(vdata[tindices[i][1]], vdata[tindices[i][2]],
 					vdata[tindices[i][3]], depth);
 		}
+		CameraPos_temp.push_back(CameraPos[0]);
+		for (int j = 1; j<int(CameraPos.size()); j++)
+			{
+				for (int k = 0; k<j; k++)
+				{
+					if (CameraPos.at(k).x==CameraPos.at(j).x && CameraPos.at(k).y==CameraPos.at(j).y && CameraPos.at(k).z==CameraPos.at(j).z)
+						break;
+					if(k == j-1)
+						CameraPos_temp.push_back(CameraPos[j]);
+				}
+			}
+		CameraPos = CameraPos_temp;
 		cout << "View points in total: " << CameraPos.size() << endl;
 		cout << "The coordinate of view point: " << endl;
-		for(int i=0; i < (int)CameraPos.size(); i++)
-		   {
-				   cout << CameraPos.at(i).x  << endl;
-		   }
-
+		for(int i=0; i < (int)CameraPos.size(); i++) {
+			cout << CameraPos.at(i).x <<' '<< CameraPos.at(i).y << ' ' << CameraPos.at(i).z << endl;
+		}
 	}
 	void IcoSphere::norm(float v[])
 	{
@@ -107,7 +117,3 @@ namespace cv{ namespace cnn_3dobj{
 
 
 }}
-
-
-
-
