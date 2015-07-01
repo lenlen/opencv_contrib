@@ -13,7 +13,7 @@ namespace cv{ namespace cnn_3dobj{
 		int depth = depth_in;
 		X *= radius;
 		Z *= radius;
-
+		diff = 0.0000000001;
 		float vdata[12][3] = { { -X, 0.0f, Z }, { X, 0.0f, Z },
 				{ -X, 0.0f, -Z }, { X, 0.0f, -Z }, { 0.0f, Z, X }, { 0.0f, Z, -X },
 				{ 0.0f, -Z, X }, { 0.0f, -Z, -X }, { Z, X, 0.0f }, { -Z, X, 0.0f },
@@ -40,7 +40,7 @@ namespace cv{ namespace cnn_3dobj{
 			{
 				for (int k = 0; k<j; k++)
 				{
-					if (CameraPos.at(k).x==CameraPos.at(j).x && CameraPos.at(k).y==CameraPos.at(j).y && CameraPos.at(k).z==CameraPos.at(j).z)
+					if (CameraPos.at(k).x-CameraPos.at(j).x<diff && CameraPos.at(k).y-CameraPos.at(j).y<diff && CameraPos.at(k).z-CameraPos.at(j).z<diff)
 						break;
 					if(k == j-1)
 						CameraPos_temp.push_back(CameraPos[j]);
