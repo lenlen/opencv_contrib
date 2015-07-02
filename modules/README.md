@@ -1,6 +1,5 @@
 An overview of the contrib modules and a small explanation
 ----------------------------------------------------------
-
 This list gives an overview of all modules available inside the contrib repository.
 These are also the correct names for disabling the building of a specific module by adding
 
