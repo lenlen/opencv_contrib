@@ -76,7 +76,7 @@ int main(int argc, char *argv[]){
 	if (parser.has("help"))
 	{
 		parser.printMessage();
-		return 0;	
+		return 0;
 	}
 	float radius = parser.get<float>("radius");
 	int ite_depth = parser.get<int>("ite_depth");
@@ -99,7 +99,7 @@ int main(int argc, char *argv[]){
 	myWindow.spin();
 	/// Set background color
 	/// Let's assume camera has the following properties
-	Point3d cam_focal_point = getCenter(plymodel); 
+	Point3d cam_focal_point = getCenter(plymodel);
 	Point3d cam_y_dir(0.0f,0.0f,1.0f);
 	for(int pose = 0; pose < (int)campos.size(); pose++){
 		imglabel << campos.at(pose).x << ' ' << campos.at(pose).y << ' ' << campos.at(pose).z << endl;
