@@ -7,14 +7,14 @@ namespace cv{ namespace cnn_3dobj{
 	IcoSphere::IcoSphere(float radius_in, int depth_in)
 	{
 
-		X = 0.5f;
-		Z = 0.5f;
-		int radius = radius_in;
-		int depth = depth_in;
+		X = 0.525731112119133606f;
+		Z = 0.850650808352039932f;
+		radius = radius_in;
+		depth = depth_in;
 		X *= radius;
 		Z *= radius;
-		diff = 0.00000005964;
-		float vdata[12][3] = { { -X, 0.0f, Z }, { X, 0.0f, Z },
+		cout << "depth " << depth << endl;
+		double vdata[12][3] = { { -X, 0.0f, Z }, { X, 0.0f, Z },
 				{ -X, 0.0f, -Z }, { X, 0.0f, -Z }, { 0.0f, Z, X }, { 0.0f, Z, -X },
 				{ 0.0f, -Z, X }, { 0.0f, -Z, -X }, { Z, X, 0.0f }, { -Z, X, 0.0f },
 				{ Z, -X, 0.0f }, { -Z, -X, 0.0f } };
@@ -26,7 +26,7 @@ namespace cv{ namespace cnn_3dobj{
 				{ 11, 0, 6 }, { 0, 1, 6 }, { 6, 1, 10 }, { 9, 0, 11 },
 				{ 9, 11, 2 }, { 9, 2, 5 }, { 7, 2, 11 } };
 
-		std::vector<float>* texCoordsList = new std::vector<float>;
+		std::vector<double>* texCoordsList = new std::vector<double>;
 		std::vector<int>* indicesList = new std::vector<int>;
 
 		// Iterate over points
@@ -35,28 +35,52 @@ namespace cv{ namespace cnn_3dobj{
 			subdivide(vdata[tindices[i][0]], vdata[tindices[i][1]],
 					vdata[tindices[i][2]], depth);
 		}
-		CameraPos_temp.push_back(CameraPos[0]);
+
+		set<vector<double> > set_t;
+		for (int j = 0; j<int(CameraPos.size()); j++){
+		  vector<double> tmp(3);
+		  tmp[0] = CameraPos.at(j).x;
+		  tmp[1] = CameraPos.at(j).y;
+		  tmp[2] = CameraPos.at(j).z;
+		  set_t.insert(tmp);
+		}
+
+
+		/*CameraPos_temp.push_back(CameraPos[0]);
 		for (int j = 1; j<int(CameraPos.size()); j++)
 			{
-				for (int k = 0; k<j; k++)
+				for (int k = 0; k<int(CameraPos_temp.size()); k++)
 				{
-					if (CameraPos.at(k).x-CameraPos.at(j).x<diff && CameraPos.at(k).y-CameraPos.at(j).y<diff && CameraPos.at(k).z-CameraPos.at(j).z<diff)
+					if (CameraPos.at(j) == CameraPos_temp.at(k))
 						break;
-					if(k == j-1)
-						CameraPos_temp.push_back(CameraPos[j]);
+					CameraPos_temp.push_back(CameraPos[j]);
 				}
 			}
-		CameraPos = CameraPos_temp;
+		CameraPos = CameraPos_temp;*/
+		/*CameraPos.erase(unique(CameraPos.begin(), CameraPos.end()), CameraPos.end());
+
+		for (int j = 1; j<int(CameraPos.size()); j++){
+		  cout << CameraPos.at(j) << endl;
+		}
+		cout << endl;*/
+
+		CameraPos.clear();
+		for (set<vector<double> >::iterator j = set_t.begin(); j != set_t.end(); j++){
+		  CameraPos.push_back(Point3d(j->at(0), j->at(1), j->at(2)));
+    }
+
 		cout << "View points in total: " << CameraPos.size() << endl;
 		cout << "The coordinate of view point: " << endl;
 		for(int i=0; i < (int)CameraPos.size(); i++) {
-			cout << CameraPos.at(i).x <<' '<< CameraPos.at(i).y << ' ' << CameraPos.at(i).z << endl;
+			//cout << CameraPos.at(i).x <<' '<< CameraPos.at(i).y << ' ' << CameraPos.at(i).z << endl;
 		}
 	}
-	void IcoSphere::norm(float v[])
+
+
+	void IcoSphere::norm(double v[])
 	{
 
-		float len = 0;
+	  double len = 0;
 
 		for (int i = 0; i < 3; ++i) {
 			len += v[i] * v[i];
@@ -65,14 +89,14 @@ namespace cv{ namespace cnn_3dobj{
 		len = sqrt(len);
 
 		for (int i = 0; i < 3; ++i) {
-			v[i] /= ((float)len);
+			v[i] /= ((double)len)/((double)radius);
 		}
 	}
 
-	void IcoSphere::add(float v[])
+	void IcoSphere::add(double v[])
 	{
 		Point3f temp_Campos;
-		std::vector<float>* temp = new std::vector<float>;
+		std::vector<double>* temp = new std::vector<double>;
 		for (int k = 0; k < 3; ++k) {
 			vertexList.push_back(v[k]);
 			vertexNormalsList.push_back(v[k]);
@@ -82,7 +106,7 @@ namespace cv{ namespace cnn_3dobj{
 		CameraPos.push_back(temp_Campos);
 	}
 
-	void IcoSphere::subdivide(float v1[], float v2[], float v3[], int depth)
+	void IcoSphere::subdivide(double v1[], double v2[], double v3[], int depth)
 	{
 
 		norm(v1);
@@ -95,9 +119,9 @@ namespace cv{ namespace cnn_3dobj{
 			return;
 		}
 
-		float* v12 = new float[3];
-		float* v23 = new float[3];
-		float* v31 = new float[3];
+		double* v12 = new double[3];
+		double* v23 = new double[3];
+		double* v31 = new double[3];
 
 		for (int i = 0; i < 3; ++i) {
 			v12[i] = (v1[i] + v2[i]) / 2;

@@ -46,11 +46,11 @@ the use of this software, even if advised of the possibility of such damage.
 #define __OPENCV_CNN_3DOBJ_HPP__
 #ifdef __cplusplus
 
-#include <opencv2/calib3d.hpp>
 #include <opencv2/viz/vizcore.hpp>
 #include <opencv2/highgui.hpp>
 #include <fstream>
 #include <vector>
+#include <set>
 #include <iostream>
 
 /** @defgroup cnn_3dobj CNN based on Caffe aimming at 3D object recognition and pose estimation
@@ -72,26 +72,26 @@ class CV_EXPORTS_W IcoSphere
 
 
 	private:
-		float X;
-		float Z;
+		double X;
+		double Z;
 
 	public:
-		std::vector<float> vertexNormalsList;
-		std::vector<float> vertexList;
+		std::vector<double> vertexNormalsList;
+		std::vector<double> vertexList;
 		std::vector<cv::Point3d> CameraPos;
 		std::vector<cv::Point3d> CameraPos_temp;
 		float radius;
-		float diff;
+		int depth;
 		IcoSphere(float radius_in, int depth_in);
 		/** @brief Make all view points having the some distance from the focal point used by the camera view.
 		*/
-		CV_WRAP void norm(float v[]);
+		CV_WRAP void norm(double v[]);
 		/** @brief Add new view point between 2 point of the previous view point.
 		*/
-		CV_WRAP void add(float v[]);
+		CV_WRAP void add(double v[]);
 		/** @brief Generating new view points from all triangles.
 		*/
-		CV_WRAP void subdivide(float v1[], float v2[], float v3[], int depth);
+		CV_WRAP void subdivide(double v1[], double v2[], double v3[], int depth);
 
 };
 //! @}

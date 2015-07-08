@@ -33,37 +33,20 @@
  *
  */
 #include <opencv2/cnn_3dobj.hpp>
+#include <opencv2/PerlinNoise.hpp>
 #include <opencv2/viz/vizcore.hpp>
+
 #include <iostream>
 #include <string>
 #include <stdio.h>
 #include <stdlib.h>
+#include <opencv2/PerlinNoise.hpp>
+
 using namespace cv;
 using namespace std;
 using namespace cv::cnn_3dobj;
-Point3d getCenter(string plymodel)
-{
-	char* path_model=(char*)plymodel.data();
-	int numPoint = 5841;
-	ifstream ifs(path_model);
-	string str;
-	for(size_t i = 0; i < 15; ++i)
-		getline(ifs, str);
-	float temp_x, temp_y, temp_z;
-	Point3f data;
-	float dummy1, dummy2, dummy3, dummy4, dummy5, dummy6;
-	for(int i = 0; i < numPoint; ++i)
-	{
-		ifs >> temp_x >> temp_y >> temp_z >> dummy1 >> dummy2 >> dummy3 >> dummy4 >> dummy5 >> dummy6;
-		data.x += temp_x;
-		data.y += temp_y;
-		data.z += temp_z;
-	}
-	data.x = data.x/numPoint;
-	data.y = data.y/numPoint;
-	data.z = data.z/numPoint;
-	return data;
-};
+
+
 int main(int argc, char *argv[]){
 	const String keys = "{help | | demo :$ ./sphereview_test -radius=250 -ite_depth=1 -plymodel=../ape.ply -imagedir=../data/images_ape/ -labeldir=../data/label_ape.txt, then press 'q' to run the demo for images generation when you see the gray background and a coordinate.}"
 			     "{radius | 250 | Distanse from camera to object, used for adjust view for the reason that differet scale of .ply model.}"
@@ -78,44 +61,67 @@ int main(int argc, char *argv[]){
 		parser.printMessage();
 		return 0;
 	}
+
+	Size windowSize( 128, 128 );
+	Size resolution( 640, 480 );
+	float xratio = (float)windowSize.width/(float)resolution.width;
+	float yratio = (float)windowSize.height/(float)resolution.height;
+	Matx33d K;
+	K.zeros();
+  K(0,0) = 518.464*xratio; //fx
+  K(1,1) = 518.536*yratio; //fy
+  K(0,2) = 310.243*xratio; //cx
+  K(1,2) = 231.697*yratio; //cy
+
 	float radius = parser.get<float>("radius");
 	int ite_depth = parser.get<int>("ite_depth");
 	string plymodel = parser.get<string>("plymodel");
 	string imagedir = parser.get<string>("imagedir");
 	string labeldir = parser.get<string>("labeldir");
-	cv::cnn_3dobj::IcoSphere ViewSphere(10,ite_depth);
+	cv::cnn_3dobj::IcoSphere ViewSphere(radius,ite_depth);
 	std::vector<cv::Point3d> campos = ViewSphere.CameraPos;
 	std::fstream imglabel;
 	char* p=(char*)labeldir.data();
 	imglabel.open(p);
 	//IcoSphere ViewSphere(16,0);
 	//std::vector<cv::Point3d>* campos = ViewSphere.CameraPos;
-	bool camera_pov = (true);
+	bool camera_pov = true;
 	/// Create a window
 	viz::Viz3d myWindow("Coordinate Frame");
 	/// Add coordinate axes
-	myWindow.showWidget("Coordinate Widget", viz::WCoordinateSystem());
-	myWindow.setBackgroundColor(viz::Color::gray());
+	//myWindow.showWidget("Coordinate Widget", viz::WCoordinateSystem());
+	myWindow.setBackgroundColor(viz::Color::black());
 	myWindow.spin();
+
+
+	viz::Mesh objmesh = viz::Mesh::loadOBJ(plymodel);
+	//viz::Mesh objmesh = viz::Mesh::load(plymodel);
+  Mat t = imread("/home/len/src/Logicos/logicos-utils/datasetGenerator/desktop/data/misuratore_open/model_texture_flip.jpg");
+  objmesh.texture = t;
+
+  viz::WMesh mesh_widget(objmesh);
+
+  cv::viz::Camera cam(K, windowSize);
+   // cv::viz::Camera cam = myWindow.getCamera();
+    //cam.setFov(Vec2d(1.1057, 0.86494));
+    myWindow.setCamera(cam);
+    //myWindow.addNoise();
+
+    cv::cnn_3dobj::PerlinNoise perlin_noise;
+
 	/// Set background color
 	/// Let's assume camera has the following properties
-	Point3d cam_focal_point = getCenter(plymodel);
-	Point3d cam_y_dir(0.0f,0.0f,1.0f);
 	for(int pose = 0; pose < (int)campos.size(); pose++){
+	  cv::Mat perlin_noise_img = perlin_noise.CreatePerlinNoiseImage(windowSize);
+	  //cv::imshow("perlin_noise_img", perlin_noise_img);
+	  //waitKey(0);
+
+	  myWindow.setBackgroundTexture(perlin_noise_img);
 		imglabel << campos.at(pose).x << ' ' << campos.at(pose).y << ' ' << campos.at(pose).z << endl;
 		/// We can get the pose of the cam using makeCameraPoses
-		Affine3f cam_pose = viz::makeCameraPose(campos.at(pose)*radius, cam_focal_point, cam_y_dir);
-		//Affine3f cam_pose = viz::makeCameraPose(cam_pos, cam_focal_point, cam_y_dir);
-		/// We can get the transformation matrix from camera coordinate system to global using
-		/// - makeTransformToGlobal. We need the axes of the camera
-		Affine3f transform = viz::makeTransformToGlobal(Vec3f(1.0f,0.0f,0.0f), Vec3f(0.0f,1.0f,0.0f), Vec3f(0.0f,0.0f,1.0f), campos.at(pose));
+		Affine3f cam_pose = viz::makeCameraPose(campos.at(pose), Point3d(0,0,0), Point3d(0,-1,0));
 		/// Create a cloud widget.
-		viz::Mesh objmesh = viz::Mesh::load(plymodel);
-		viz::WMesh mesh_widget(objmesh);
-		/// Pose of the widget in camera frame
-		Affine3f cloud_pose = Affine3f().translate(Vec3f(1.0f,1.0f,1.0f));
-		/// Pose of the widget in global frame
-		Affine3f cloud_pose_global = transform * cloud_pose;
+
 		/// Visualize camera frame
 		if (!camera_pov)
 		{
@@ -126,8 +132,10 @@ int main(int argc, char *argv[]){
 		}
 
 		/// Visualize widget
-		mesh_widget.setRenderingProperty(viz::LINE_WIDTH, 4.0);
-		myWindow.showWidget("ape", mesh_widget, cloud_pose_global);
+		//mesh_widget.setRenderingProperty(viz::LINE_WIDTH, 4.0);
+
+
+		myWindow.showWidget("ape", mesh_widget);//, cloud_pose_global);
 
 	    /*viz::WLine axis(cam_focal_point, campos->at(pose)*23);
 	    axis.setRenderingProperty(viz::LINE_WIDTH, 4.0);

@@ -43,7 +43,7 @@ the use of this software, even if advised of the possibility of such damage.
 #define __OPENCV_CNN_3DOBJ_PRECOMP_HPP__
 
 #include <opencv2/cnn_3dobj.hpp>
-#include <opencv2/calib3d.hpp>
+#include <opencv2/PerlinNoise.hpp>
 #include <opencv2/viz/vizcore.hpp>
 #include <opencv2/highgui.hpp>
 #include <iostream>
