@@ -72,19 +72,29 @@ int main(int argc, char *argv[]){
   K(1,1) = 518.536*yratio; //fy
   K(0,2) = 310.243*xratio; //cx
   K(1,2) = 231.697*yratio; //cy
+  int numLight = 5; //TODO
+  int numScale = 3;
+  float stepScale = 0.05;
 
 	float radius = parser.get<float>("radius");
 	int ite_depth = parser.get<int>("ite_depth");
 	string plymodel = parser.get<string>("plymodel");
 	string imagedir = parser.get<string>("imagedir");
 	string labeldir = parser.get<string>("labeldir");
-	cv::cnn_3dobj::IcoSphere ViewSphere(radius,ite_depth);
-	std::vector<cv::Point3d> campos = ViewSphere.CameraPos;
+
+	vector<cv::cnn_3dobj::IcoSphere> viewSpheres;
+	vector<vector<Point3d> > pointsOnSpheres;
+	for(int i = 0; i < numScale; i++){
+	  cv::cnn_3dobj::IcoSphere viewSphere(radius+(i*stepScale),ite_depth);
+	  viewSpheres.push_back(viewSphere);
+	  vector<Point3d> campos = viewSphere.CameraPos;
+	  pointsOnSpheres.push_back(campos);
+	}
+
 	std::fstream imglabel;
 	char* p=(char*)labeldir.data();
 	imglabel.open(p);
-	//IcoSphere ViewSphere(16,0);
-	//std::vector<cv::Point3d>* campos = ViewSphere.CameraPos;
+
 	bool camera_pov = true;
 	/// Create a window
 	viz::Viz3d myWindow("Coordinate Frame");
@@ -102,54 +112,58 @@ int main(int argc, char *argv[]){
   viz::WMesh mesh_widget(objmesh);
 
   cv::viz::Camera cam(K, windowSize);
-   // cv::viz::Camera cam = myWindow.getCamera();
-    //cam.setFov(Vec2d(1.1057, 0.86494));
-    myWindow.setCamera(cam);
-    //myWindow.addNoise();
+  // cv::viz::Camera cam = myWindow.getCamera();
+  //cam.setFov(Vec2d(1.1057, 0.86494));
+  myWindow.setCamera(cam);
+  //myWindow.addNoise();
 
-    cv::cnn_3dobj::PerlinNoise perlin_noise;
+  cv::cnn_3dobj::PerlinNoise perlin_noise;
 
 	/// Set background color
 	/// Let's assume camera has the following properties
-	for(int pose = 0; pose < (int)campos.size(); pose++){
-	  cv::Mat perlin_noise_img = perlin_noise.CreatePerlinNoiseImage(windowSize);
-	  //cv::imshow("perlin_noise_img", perlin_noise_img);
-	  //waitKey(0);
+	for(int currentScale = 0; currentScale < numScale; currentScale++){
+	  for(size_t pose = 0; pose < pointsOnSpheres.at(currentScale).size(); pose++){
+	    Point3d currentPoint = pointsOnSpheres.at(currentScale).at(pose);
 
-	  myWindow.setBackgroundTexture(perlin_noise_img);
-		imglabel << campos.at(pose).x << ' ' << campos.at(pose).y << ' ' << campos.at(pose).z << endl;
-		/// We can get the pose of the cam using makeCameraPoses
-		Affine3f cam_pose = viz::makeCameraPose(campos.at(pose), Point3d(0,0,0), Point3d(0,-1,0));
-		/// Create a cloud widget.
+      cv::Mat perlin_noise_img = perlin_noise.CreatePerlinNoiseImage(windowSize);
+      //cv::imshow("perlin_noise_img", perlin_noise_img);
+      //waitKey(0);
 
-		/// Visualize camera frame
-		if (!camera_pov)
-		{
-			viz::WCameraPosition cpw(1); // Coordinate axes
-			viz::WCameraPosition cpw_frustum(Vec2f(0.5, 0.5)); // Camera frustum
-			myWindow.showWidget("CPW", cpw, cam_pose);
-			myWindow.showWidget("CPW_FRUSTUM", cpw_frustum, cam_pose);
-		}
+      myWindow.setBackgroundTexture(perlin_noise_img);
+      imglabel << currentPoint.x << ' ' << currentPoint.y << ' ' << currentPoint.z << endl;
+      /// We can get the pose of the cam using makeCameraPoses
+      Affine3f cam_pose = viz::makeCameraPose(currentPoint, Point3d(0,0,0), Point3d(0,-1,0));
+      /// Create a cloud widget.
 
-		/// Visualize widget
-		//mesh_widget.setRenderingProperty(viz::LINE_WIDTH, 4.0);
+      /// Visualize camera frame
+      if (!camera_pov)
+      {
+        viz::WCameraPosition cpw(1); // Coordinate axes
+        viz::WCameraPosition cpw_frustum(Vec2f(0.5, 0.5)); // Camera frustum
+        myWindow.showWidget("CPW", cpw, cam_pose);
+        myWindow.showWidget("CPW_FRUSTUM", cpw_frustum, cam_pose);
+      }
+
+      /// Visualize widget
+      //mesh_widget.setRenderingProperty(viz::LINE_WIDTH, 4.0);
 
 
-		myWindow.showWidget("ape", mesh_widget);//, cloud_pose_global);
+      myWindow.showWidget("ape", mesh_widget);//, cloud_pose_global);
 
-	    /*viz::WLine axis(cam_focal_point, campos->at(pose)*23);
-	    axis.setRenderingProperty(viz::LINE_WIDTH, 4.0);
-	    myWindow.showWidget("Line Widget", axis);*/
+        /*viz::WLine axis(cam_focal_point, campos->at(pose)*23);
+        axis.setRenderingProperty(viz::LINE_WIDTH, 4.0);
+        myWindow.showWidget("Line Widget", axis);*/
 
-		/// Set the viewer pose to that of camera
-		if (camera_pov)
-			myWindow.setViewerPose(cam_pose);
-		char* temp = new char;
-		sprintf (temp,"%d",pose);
-		string filename = temp;
-		filename = imagedir + filename;
-		filename += ".png";
-		myWindow.saveScreenshot(filename);
+      /// Set the viewer pose to that of camera
+      if (camera_pov)
+        myWindow.setViewerPose(cam_pose);
+      char temp[100];
+      sprintf (temp,"s%d_p%d",currentScale, pose);
+      string filename = temp;
+      filename = imagedir + filename;
+      filename += ".png";
+      myWindow.saveScreenshot(filename);
+	  }
 	}
 	return 1;
 };
