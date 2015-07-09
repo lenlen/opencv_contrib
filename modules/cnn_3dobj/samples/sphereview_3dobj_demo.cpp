@@ -101,7 +101,7 @@ int main(int argc, char *argv[]){
 	/// Add coordinate axes
 	//myWindow.showWidget("Coordinate Widget", viz::WCoordinateSystem());
 	myWindow.setBackgroundColor(viz::Color::black());
-	myWindow.spin();
+
 
 
 	viz::Mesh objmesh = viz::Mesh::loadOBJ(plymodel);
@@ -121,48 +121,52 @@ int main(int argc, char *argv[]){
 
 	/// Set background color
 	/// Let's assume camera has the following properties
-	for(int currentScale = 0; currentScale < numScale; currentScale++){
-	  for(size_t pose = 0; pose < pointsOnSpheres.at(currentScale).size(); pose++){
-	    Point3d currentPoint = pointsOnSpheres.at(currentScale).at(pose);
 
-      cv::Mat perlin_noise_img = perlin_noise.CreatePerlinNoiseImage(windowSize);
-      //cv::imshow("perlin_noise_img", perlin_noise_img);
-      //waitKey(0);
+  for(size_t pose = 0; pose < pointsOnSpheres.at(0).size(); pose++){
+    for(int currentScale = 0; currentScale < numScale; currentScale++){
+	    for(int currentLight = 0; currentLight < numLight; currentLight++){
+        //TODO rest only for test
+        Point3d currentPoint = pointsOnSpheres.at(currentScale).at(pose);
 
-      myWindow.setBackgroundTexture(perlin_noise_img);
-      imglabel << currentPoint.x << ' ' << currentPoint.y << ' ' << currentPoint.z << endl;
-      /// We can get the pose of the cam using makeCameraPoses
-      Affine3f cam_pose = viz::makeCameraPose(currentPoint, Point3d(0,0,0), Point3d(0,-1,0));
-      /// Create a cloud widget.
+        cv::Mat perlin_noise_img = perlin_noise.CreatePerlinNoiseImage(windowSize);
+        //cv::imshow("perlin_noise_img", perlin_noise_img);
+        //waitKey(0);
 
-      /// Visualize camera frame
-      if (!camera_pov)
-      {
-        viz::WCameraPosition cpw(1); // Coordinate axes
-        viz::WCameraPosition cpw_frustum(Vec2f(0.5, 0.5)); // Camera frustum
-        myWindow.showWidget("CPW", cpw, cam_pose);
-        myWindow.showWidget("CPW_FRUSTUM", cpw_frustum, cam_pose);
-      }
+        //myWindow.setBackgroundTexture(perlin_noise_img);
+        imglabel << currentPoint.x << ' ' << currentPoint.y << ' ' << currentPoint.z << endl;
+        /// We can get the pose of the cam using makeCameraPoses
+        Affine3f cam_pose = viz::makeCameraPose(currentPoint, Point3d(0,0,0), Point3d(0,-1,0));
+        /// Create a cloud widget.
 
-      /// Visualize widget
-      //mesh_widget.setRenderingProperty(viz::LINE_WIDTH, 4.0);
+        /// Visualize camera frame
+        /*if (!camera_pov)
+        {
+          viz::WCameraPosition cpw(1); // Coordinate axes
+          viz::WCameraPosition cpw_frustum(Vec2f(0.5, 0.5)); // Camera frustum
+          myWindow.showWidget("CPW", cpw, cam_pose);
+          myWindow.showWidget("CPW_FRUSTUM", cpw_frustum, cam_pose);
+        }*/
 
-
-      myWindow.showWidget("ape", mesh_widget);//, cloud_pose_global);
+        /// Visualize widget
+        //mesh_widget.setRenderingProperty(viz::LINE_WIDTH, 4.0);
+        //myWindow.addRandomLight();
+        myWindow.showWidget("ape", mesh_widget);//, cloud_pose_global);
 
         /*viz::WLine axis(cam_focal_point, campos->at(pose)*23);
         axis.setRenderingProperty(viz::LINE_WIDTH, 4.0);
         myWindow.showWidget("Line Widget", axis);*/
 
-      /// Set the viewer pose to that of camera
-      if (camera_pov)
-        myWindow.setViewerPose(cam_pose);
-      char temp[100];
-      sprintf (temp,"s%d_p%d",currentScale, pose);
-      string filename = temp;
-      filename = imagedir + filename;
-      filename += ".png";
-      myWindow.saveScreenshot(filename);
+        /// Set the viewer pose to that of camera
+        if (camera_pov)
+          myWindow.setViewerPose(cam_pose);
+        char temp[100];
+        sprintf (temp,"s%d_p%d",currentScale, pose);
+        string filename = temp;
+        filename = imagedir + filename;
+        filename += ".png";
+        //myWindow.saveScreenshot(filename);
+        myWindow.spin();
+	    }
 	  }
 	}
 	return 1;
